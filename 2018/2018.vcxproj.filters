@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="glob">
+      <UniqueIdentifier>{c1f13650-3014-4ac0-94ef-083d52f25e73}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="data">
+      <UniqueIdentifier>{6a373482-03b8-46df-b069-020b19754f86}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="solutions.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\aoc_main.cpp">
+      <Filter>glob</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\puzzle_switch.h">
+      <Filter>glob</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="input_day01.txt">
+      <Filter>data</Filter>
+    </Text>
+    <Text Include="input_day02.txt">
+      <Filter>data</Filter>
+    </Text>
+    <Text Include="input_day03.txt">
+      <Filter>data</Filter>
+    </Text>
+    <Text Include="input_day04.txt">
+      <Filter>data</Filter>
+    </Text>
+    <Text Include="input_day05.txt">
+      <Filter>data</Filter>
+    </Text>
+    <Text Include="input_day06.txt">
+      <Filter>data</Filter>
+    </Text>
+    <Text Include="input_day07.txt">
+      <Filter>data</Filter>
+    </Text>
+    <Text Include="input_day08.txt">
+      <Filter>data</Filter>
+    </Text>
+    <Text Include="input_day09.txt">
+      <Filter>data</Filter>
+    </Text>
+    <Text Include="input_day10.txt">
+      <Filter>data</Filter>
+    </Text>
+    <Text Include="input_day12.txt">
+      <Filter>data</Filter>
+    </Text>
+  </ItemGroup>
+</Project>
