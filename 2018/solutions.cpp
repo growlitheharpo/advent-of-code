@@ -10,7 +10,7 @@ void day01()
 {
 	/* Part 1 
 	FILE* fin;
-	fopen_s(&fin, "input_day1.txt", "r");
+	fopen_s(&fin, "input_day01.txt", "r");
 
 	if(fin == NULL)
 		return;
@@ -34,10 +34,10 @@ void day01()
 	if(fin == NULL)
 		return;
 
-	const unsigned int BUFFER_SIZE = 32;
+	const uint32_t BUFFER_SIZE = 32;
 	char buf[BUFFER_SIZE];
 
-	unsigned int pos_size = 100, neg_size = 100;
+	uint32_t pos_size = 100, neg_size = 100;
 	bool *visited_pos = (bool*)calloc(pos_size, sizeof(bool)),
 		*visited_neg = (bool*)calloc(neg_size, sizeof(bool));
 
@@ -85,6 +85,9 @@ void day01()
 	fclose(fin);
 	printf("%i\n", result);
 
+	free(visited_pos);
+	free(visited_neg);
+
 	//*/
 }
 
@@ -92,7 +95,7 @@ void day02()
 {
 	/* Part 1
 	FILE* fin;
-	fopen_s(&fin, "input_day2.txt", "r");
+	fopen_s(&fin, "input_day02.txt", "r");
 
 	if(fin == NULL)
 		return;
@@ -197,7 +200,7 @@ void day03()
 {
 	/* Part 1
 	FILE* fin;
-	fopen_s(&fin, "input_day3.txt", "r");
+	fopen_s(&fin, "input_day03.txt", "r");
 
 	if(fin == NULL)
 		return;
@@ -300,130 +303,8 @@ void day03()
 
 void day04()
 {
-	/* Part 1
 	FILE* fin;
-	fopen_s(&fin, "input_day4.txt", "r");
-
-	if(fin == NULL)
-		return;
-
-	// Set up lots of data
-	const uint32_t LOG_COUNT = 1133;
-	const uint32_t LOG_LENGTH = 45;
-	char line_buf[LOG_COUNT][LOG_LENGTH] = { 0 };
-
-	typedef uint32_t guard_id_t;
-	typedef uint8_t guard_index_t;
-
-	const uint32_t MAX_GUARD_COUNT = 128;
-	guard_id_t guard_ids[MAX_GUARD_COUNT] = { 0 };
-	uint32_t sleep_count[MAX_GUARD_COUNT][60] = { 0 };
-
-	// Lambda function used by qsort to order the logs chronologically
-	auto sort_logs_by_time = [](const void*e1, const void*e2) -> int
-	{
-		struct log_time { int32_t year, month, day, hour, minute; };
-		log_time a, b;
-
-		sscanf_s((const char*)e1, "[%d-%d-%d %d:%d]", &a.year, &a.month, &a.day, &a.hour, &a.minute);
-		sscanf_s((const char*)e2, "[%d-%d-%d %d:%d]", &b.year, &b.month, &b.day, &b.hour, &b.minute);
-
-		if(a.year < b.year) return -1;
-		else if(a.year == b.year)
-		{
-			if(a.month < b.month) return -1;
-			else if(a.month == b.month)
-			{
-				if(a.day < b.day) return -1;
-				else if(a.day == b.day)
-				{
-					if(a.hour < b.hour) return -1;
-					else if(a.hour == b.hour)
-					{
-						if(a.minute < b.minute) return -1;
-						else if(a.minute == b.minute) return 0;
-					}
-				}
-			}
-		}
-		return 1;
-	};
-
-	// Lambda function used to turn a guard id into an index in our array (a cheap, O(n) mapping function)
-	auto get_guard_index_from_id = [&guard_ids, MAX_GUARD_COUNT](guard_id_t guard_id) -> guard_index_t
-	{
-		for(guard_index_t i = 0; i < MAX_GUARD_COUNT; ++i)
-		{
-			if(guard_ids[i] == guard_id)
-			{
-				return i;
-			}
-			if(guard_ids[i] == 0)
-			{
-				guard_ids[i] = guard_id;
-				return i;
-			}
-		}
-		throw -1;
-	};
-
-	int i = 0;
-	while(fgets(line_buf[i++], LOG_LENGTH, fin)) {}
-	fclose(fin);
-
-	qsort(line_buf, LOG_COUNT, LOG_LENGTH, sort_logs_by_time);
-
-	uint32_t max_sleep = 0;
-	guard_id_t max_sleep_index = 0;
-
-	for(uint32_t i = 0; i < LOG_COUNT;)
-	{
-		guard_id_t guard, tmp;
-		sscanf_s(line_buf[i], "[%*d-%*d-%*d %*d:%*d] Guard #%d begins shift\n", &guard);
-		guard = get_guard_index_from_id(guard);
-
-		++i; // move to the next line
-
-		while(true)
-		{
-			if(sscanf_s(line_buf[i], "[%*d-%*d-%*d %*d:%*d] Guard #%d begins shift\n", &tmp) != 0)
-			{
-				int32_t sleep = 0;
-				for(int i = 0; i < 60; ++i)
-					sleep += sleep_count[guard][i];
-
-				if(sleep > max_sleep)
-				{
-					max_sleep = sleep;
-					max_sleep_index = guard;
-				}
-
-				break;
-			}
-
-			int32_t start_time, end_time;
-			sscanf_s(line_buf[i++], "[%*d-%*d-%*d %*d:%d]", &start_time);
-			sscanf_s(line_buf[i++], "[%*d-%*d-%*d %*d:%d]", &end_time);
-
-			for(int i = start_time; i < end_time; ++i)
-				sleep_count[guard][i]++;
-		}
-	}
-
-	uint8_t max_minute_index = 0;
-	for(int i = 1; i < 60; ++i)
-	{
-		if(sleep_count[max_sleep_index][i] > sleep_count[max_sleep_index][max_minute_index])
-			max_minute_index = i;
-	}
-
-	int32_t result = guard_ids[max_sleep_index] * max_minute_index;
-	printf("%d\n", result);
-
-	/*/
-
-	FILE* fin;
-	fopen_s(&fin, "input_day4.txt", "r");
+	fopen_s(&fin, "input_day04.txt", "r");
 
 	if(fin == NULL)
 		return;
@@ -494,9 +375,66 @@ void day04()
 
 	qsort(line_buf, LOG_COUNT, LOG_LENGTH, sort_logs_by_time);
 
-	uint32_t max_sleep = 0;
-	guard_id_t max_guard_index = 0;
+	/* Part 1
+
+	struct
+	{
+		uint32_t sleep = 0;
+		guard_id_t guard_index = 0;
+	} result;
+
+	for(uint32_t i = 0; i < LOG_COUNT;)
+	{
+		guard_id_t guard, tmp;
+		sscanf_s(line_buf[i], "[%*d-%*d-%*d %*d:%*d] Guard #%d begins shift\n", &guard);
+		guard = get_guard_index_from_id(guard);
+
+		++i; // move to the next line
+
+		while(true)
+		{
+			if(sscanf_s(line_buf[i], "[%*d-%*d-%*d %*d:%*d] Guard #%d begins shift\n", &tmp) != 0)
+			{
+				int32_t sleep = 0;
+				for(int i = 0; i < 60; ++i)
+					sleep += sleep_count[guard][i];
+
+				if(sleep > result.sleep)
+				{
+					result.sleep = sleep;
+					result.guard_index = guard;
+				}
+
+				break;
+			}
+
+			int32_t start_time, end_time;
+			sscanf_s(line_buf[i++], "[%*d-%*d-%*d %*d:%d]", &start_time);
+			sscanf_s(line_buf[i++], "[%*d-%*d-%*d %*d:%d]", &end_time);
+
+			for(int i = start_time; i < end_time; ++i)
+				sleep_count[guard][i]++;
+		}
+	}
+
 	uint8_t max_minute_index = 0;
+	for(int i = 1; i < 60; ++i)
+	{
+		if(sleep_count[result.guard_index][i] > sleep_count[result.guard_index][max_minute_index])
+			max_minute_index = i;
+	}
+
+	int32_t result = guard_ids[result.guard_index] * max_minute_index;
+	printf("%d\n", result);
+
+	/*/
+
+	struct
+	{
+		uint32_t sleep = 0;
+		guard_id_t guard_index = 0;
+		uint8_t minute_index = 0;
+	} result;
 
 	for(uint32_t i = 0; i < LOG_COUNT;)
 	{
@@ -513,12 +451,12 @@ void day04()
 				int32_t sleep = 0;
 				for(int i = 0; i < 60; ++i)
 				{
-					if(sleep_count[guard][i] > max_sleep)
+					if(sleep_count[guard][i] > result.sleep)
 					{
-						max_sleep = sleep_count[guard][i];
+						result.sleep = sleep_count[guard][i];
 
-						max_guard_index = guard;
-						max_minute_index = i;
+						result.guard_index = guard;
+						result.minute_index = i;
 					}
 				}
 
@@ -534,7 +472,7 @@ void day04()
 		}
 	}
 
-	int32_t result = guard_ids[max_guard_index] * max_minute_index;
+	int32_t result = guard_ids[result.guard_index] * result.minute_index;
 	printf("%d\n", result);
 
 	//*/
@@ -542,9 +480,8 @@ void day04()
 
 void day05()
 {
-	/* Part 1
 	FILE* fin;
-	fopen_s(&fin, "input_day5.txt", "r");
+	fopen_s(&fin, "input_day05.txt", "r");
 
 	if(fin == NULL)
 		return;
@@ -553,6 +490,8 @@ void day05()
 	int i = 0;
 
 	const int8_t DISTANCE_BETWEEN_CAPS = 'a' - 'A';
+
+	/* Part 1
 
 	while((result[i] = fgetc(fin)) != EOF)
 	{
@@ -570,18 +509,8 @@ void day05()
 
 	fclose(fin);
 	printf("%d\n", i - 1);
+
 	/*/
-
-	FILE* fin;
-	fopen_s(&fin, "input_day5.txt", "r");
-
-	if(fin == NULL)
-		return;
-
-	char result[50001];
-	int i = 0;
-
-	const int8_t DISTANCE_BETWEEN_CAPS = 'a' - 'A';
 
 	int smallest_result = INT_MAX;
 
@@ -613,14 +542,14 @@ void day05()
 
 	fclose(fin);
 	printf("%d\n", smallest_result - 1);
+
 	//*/
 }
 
 void day06()
 {
-	/* Part 1
 	FILE* fin;
-	fopen_s(&fin, "input_day6.txt", "r");
+	fopen_s(&fin, "input_day06.txt", "r");
 
 	if(fin == NULL)
 		return;
@@ -633,9 +562,6 @@ void day06()
 		int32_t x, y;
 	} coordinates[COORDINATE_COUNT];
 
-	int32_t coord_count[COORDINATE_COUNT] = { 0 };
-	uint64_t ignore_flags = 0;
-
 	for(int i = 0; i < COORDINATE_COUNT; ++i)
 	{
 		coordinate& c = coordinates[i];
@@ -643,6 +569,11 @@ void day06()
 	}
 
 	fclose(fin);
+
+	/* Part 1
+
+	int32_t coord_count[COORDINATE_COUNT] = { 0 };
+	uint64_t ignore_flags = 0;
 
 	for(int32_t x = 0; x < GRID_SIZE; ++x)
 	{
@@ -688,28 +619,8 @@ void day06()
 	printf("Max area: %d\n", max_area);
 
 	/*/
-	FILE* fin;
-	fopen_s(&fin, "input_day6.txt", "r");
-
-	if(fin == NULL)
-		return;
-
+	
 	const uint32_t MAX_DISTANCE = 10000;
-	const uint32_t COORDINATE_COUNT = 50;
-	const uint32_t GRID_SIZE = 1000;
-
-	struct coordinate
-	{
-		int32_t x, y;
-	} coordinates[COORDINATE_COUNT];
-
-	for(int i = 0; i < COORDINATE_COUNT; ++i)
-	{
-		coordinate& c = coordinates[i];
-		fscanf_s(fin, "%d, %d\n", &c.x, &c.y);
-	}
-
-	fclose(fin);
 
 	int32_t region_size = 0;
 
@@ -736,9 +647,8 @@ void day06()
 
 void day07()
 {
-	/* Part 1
 	FILE* fin;
-	fopen_s(&fin, "input_day7.txt", "r");
+	fopen_s(&fin, "input_day07.txt", "r");
 
 	const uint32_t ALPHABET_SIZE = 'Z' - 'A' + 1; // probably won't change anytime soon...
 
@@ -763,6 +673,8 @@ void day07()
 		s.requirements[s.req_count++] = line.requirement - 'A';
 	}
 	fclose(fin);
+
+	/* Part 1
 
 	char completion_order[ALPHABET_SIZE + 1] = { 0 };
 	uint32_t completed_steps = 0;
@@ -797,33 +709,6 @@ void day07()
 	printf("Order: %s\n", completion_order);
 
 	/*/
-
-	FILE* fin;
-	fopen_s(&fin, "input_day7.txt", "r");
-
-	const uint32_t ALPHABET_SIZE = 'Z' - 'A' + 1; // probably won't change anytime soon...
-
-	if(fin == NULL)
-		return;
-
-	struct step
-	{
-		char requirements[ALPHABET_SIZE] = { 0 };
-		int32_t req_count = 0;
-	} steps[ALPHABET_SIZE];
-
-	while (!feof(fin))
-	{
-		struct {
-			char id, requirement;
-		} line;
-
-		fscanf_s(fin, "Step %c must be finished before step %c can begin.\n", &line.requirement, 1, &line.id, 1);
-
-		step& s = steps[line.id - 'A'];
-		s.requirements[s.req_count++] = line.requirement - 'A';
-	}
-	fclose(fin);
 
 	const uint32_t WORKER_COUNT = 5;
 	struct worker_status
@@ -905,7 +790,7 @@ void day07()
 void day08()
 {
 	FILE* fin;
-	fopen_s(&fin, "input_day8.txt", "r");
+	fopen_s(&fin, "input_day08.txt", "r");
 
 	if(fin == NULL)
 		return;
@@ -971,7 +856,7 @@ void day08()
 void day09()
 {
 	FILE* fin;
-	fopen_s(&fin, "input_day9.txt", "r");
+	fopen_s(&fin, "input_day09.txt", "r");
 
 	if(fin == NULL)
 		return;
@@ -1146,7 +1031,7 @@ void day10()
 void day11()
 {
 	const int32_t SERIAL_NUMBER = 6303;
-	const uint32_t GRID_SIZE = 2500;
+	const uint32_t GRID_SIZE = 300;
 	const int32_t MIN_SOLUTION_SIZE = 1;
 	const int32_t MAX_SOLUTION_SIZE = GRID_SIZE;
 
