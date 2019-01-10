@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <RootNamespace>AdventOfCode</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
     <ProjectName>2017</ProjectName>
     <ProjectGuid>{7B47B020-9569-4139-B71D-355831056620}</ProjectGuid>
   </PropertyGroup>

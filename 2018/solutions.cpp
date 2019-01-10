@@ -472,8 +472,8 @@ void day04()
 		}
 	}
 
-	int32_t result = guard_ids[result.guard_index] * result.minute_index;
-	printf("%d\n", result);
+	int32_t r = guard_ids[result.guard_index] * result.minute_index;
+	printf("%d\n", r);
 
 	//*/
 }
@@ -1175,5 +1175,211 @@ void day12()
 
 void day13()
 {
+	FILE* fin;
+	fopen_s(&fin, "input_day13.txt", "r");
 
+	const uint32_t X_WIDTH = 152;
+	const uint32_t Y_HEIGHT = 152;
+	const uint32_t CART_COUNT = 17;
+
+	char track[Y_HEIGHT][X_WIDTH] = { 0 };
+
+	struct cart
+	{
+		uint32_t x = INT_MAX, y = INT_MAX;
+		char dir;
+		enum D { LEFT, STRAIGHT, RIGHT } turn_dir = LEFT;
+
+		void intersection_turn()
+		{
+			if (turn_dir == LEFT)
+			{
+				switch (dir)
+				{
+				case 'v': dir = '>'; break;
+				case '^': dir = '<'; break;
+				case '<': dir = 'v'; break;
+				case '>': dir = '^'; break;
+				}
+			}
+			else if (turn_dir == RIGHT)
+			{
+				switch (dir)
+				{
+				case 'v': dir = '<'; break;
+				case '^': dir = '>'; break;
+				case '<': dir = '^'; break;
+				case '>': dir = 'v'; break;
+				}
+			}
+
+			turn_dir = (D)((turn_dir + 1) % (RIGHT + 1)); 
+		}
+
+		void backslash_turn()
+		{
+			if (dir == '>')
+				dir = 'v';
+			else if (dir == '^')
+				dir = '<';
+			else if (dir == '<')
+				dir = '^';
+			else if (dir == 'v')
+				dir = '>';
+		}
+
+		void forwardslash_turn()
+		{
+			if (dir == '>')
+				dir = '^';
+			else if (dir == '^')
+				dir = '>';
+			else if (dir == '<')
+				dir = 'v';
+			else if (dir == 'v')
+				dir = '<';
+		}
+
+	} carts[CART_COUNT];
+
+	auto sort_carts = [](const void* a, const void* b) -> int32_t
+	{
+		const cart *l = (const cart*)a;
+		const cart *r = (const cart*)b;
+
+		if (l->y < r->y || (l->y == r->y && l->x < r->x)) return -1;
+		else if (l->y == r->y && l->x == r->x) return 0;
+		else return 1;
+	};
+
+
+	if (fin == NULL)
+		return;
+
+	uint32_t cart_num = 0;
+	for (int32_t x = 0, y = 0; !feof(fin); x = 0, ++y)
+	{
+		char line_buffer[X_WIDTH];
+		fgets(line_buffer, X_WIDTH, fin);
+
+		char c;
+		while (c = line_buffer[x],
+			c != '\n' && c!= 0)
+		{
+			if (c == '^' || c == 'v' || c == '<' || c == '>')
+			{
+				carts[cart_num].x = x;
+				carts[cart_num].y = y;
+				carts[cart_num].dir = c;
+				++cart_num;
+
+				switch (c)
+				{
+				case 'v':
+				case '^': track[y][x++] = '|'; break;
+				case '<':
+				case '>': track[y][x++] = '-'; break;
+				}
+			}
+			else
+			{
+				track[y][x++] = c;
+			}
+		}
+	}
+	fclose(fin);
+
+	struct { int32_t tick = 0, x, y; } result;
+	bool collision_occurred = false;
+
+	HANDLE HStdHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+	DWORD tmp, con_size;
+	COORD write_coord;
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+
+	GetConsoleScreenBufferInfo(HStdHandle, &csbi);
+	con_size = csbi.dwSize.X * csbi.dwSize.Y;
+
+	while (!collision_occurred)
+	{
+		++result.tick;
+		qsort(carts, CART_COUNT, sizeof(cart), sort_carts);
+
+		// Update all of the carts
+		for (int32_t i = 0; i < cart_num && !collision_occurred; ++i)
+		{
+			cart& c = carts[i];
+
+			// Make sure this is a valid cart
+			if (c.x == INT_MAX || c.y == INT_MAX)
+				continue;
+
+			// Tick actual movement
+			switch (carts[i].dir)
+			{
+			case 'v': c.y++; break;
+			case '^': c.y--; break;
+			case '<': c.x--; break;
+			case '>': c.x++; break;
+			}
+
+			// Check for turns
+			switch (track[c.y][c.x])
+			{
+			case '+': c.intersection_turn(); break;
+			case '\\': c.backslash_turn(); break;
+			case '/': c.forwardslash_turn(); break;
+			}
+
+			// Check all previous carts (which have already updated) to see if there's a collision
+			for (int32_t j = 0; j < i; ++j)
+			{
+				if (carts[j].x == c.x && carts[j].y == c.y)
+				{
+					result.x = c.x;
+					result.y = c.y;
+					collision_occurred = true;
+					break;
+				}
+			}
+		}
+
+		// Clear the console
+		//write_coord = { 0, 0 };
+		//FillConsoleOutputCharacter(HStdHandle, ' ', con_size, write_coord, &tmp);
+
+		/* Draw the track
+		for (int32_t y = 0; y < Y_HEIGHT; ++y)
+		{
+			for (int32_t x = 0; x < X_WIDTH; ++x)
+			{
+				char output = track[y][x];
+				WORD color = 15;
+
+				for (int32_t i = 0; i < cart_num; ++i) 
+				{
+					if (carts[i].y == y && carts[i].x == x) 
+					{ 
+						output = carts[i].dir;
+
+						switch (carts[i].turn_dir)
+						{
+						case cart::LEFT: color = FOREGROUND_BLUE | FOREGROUND_INTENSITY; break;
+						case cart::STRAIGHT: color = FOREGROUND_GREEN | FOREGROUND_INTENSITY; break;
+						case cart::RIGHT: color = FOREGROUND_RED | FOREGROUND_INTENSITY; break;
+						}
+						break;
+					} 
+				}
+
+				write_coord = { (SHORT)x, (SHORT)y };
+				WriteConsoleOutputAttribute(HStdHandle, &color, 1, write_coord, &tmp);
+				WriteConsoleOutputCharacter(HStdHandle, &output, 1, write_coord, &tmp);
+			}
+		}
+
+		Sleep(50); /**/
+	}
+
+	printf("Collision occurred at second %d @ %d,%d\n", result.tick, result.x, result.y);
 }
