@@ -491,7 +491,7 @@ void day05()
 
 	const int8_t DISTANCE_BETWEEN_CAPS = 'a' - 'A';
 
-	/* Part 1
+	//* Part 1
 
 	while((result[i] = fgetc(fin)) != EOF)
 	{
@@ -1365,7 +1365,7 @@ void day13()
 		cart_num -= result.crash_count * 2;
 		result.crash_count = 0;
 
-		/* Draw the track
+		//* Draw the track
 		for (int32_t y = 0; y < Y_HEIGHT; ++y)
 		{
 			for (int32_t x = 0; x < X_WIDTH; ++x)
@@ -1395,9 +1395,138 @@ void day13()
 			}
 		}
 
-		Sleep(50); /**/
+		//Sleep(50); /**/
 	}
 
 	printf("Collision occurred at second %d @ %d,%d\n", result.tick, result.x, result.y);
 	CloseHandle(HStdHandle);
+}
+
+void day14()
+{
+	const int32_t PUZZLE_INPUT = 909441;
+	const int32_t PUZZLE_INPUT_ARR[] = { 9,0,9,4,4,1 };
+	const int32_t PUZZLE_INPUT_COUNT = sizeof(PUZZLE_INPUT_ARR) / sizeof(PUZZLE_INPUT_ARR[0]);
+	const uint32_t FIRST_VAL = 3;
+	const uint32_t SECOND_VAL = 7;
+
+	struct vec
+	{
+		const int32_t DEFAULT_CAPACITY = 32;
+
+		int32_t *buf = (int32_t*)malloc(sizeof(int32_t) * DEFAULT_CAPACITY);
+		int32_t size = 0, capacity = DEFAULT_CAPACITY;
+
+		void push_back(int32_t v)
+		{
+			while (size >= capacity)
+				buf = (int32_t*)realloc(buf, sizeof(int32_t) * (capacity *= 2));
+
+			buf[size++] = v;
+		}
+
+		void destruct()
+		{
+			free(buf);
+			size = capacity = 0;
+		}
+
+	} recipes;
+
+	int32_t elf_1_index = 0;
+	int32_t elf_2_index = 1;
+
+	auto choose_active_recipe = [&recipes](int32_t i) -> int32_t
+	{
+		return (recipes.buf[i] + 1 + i) % recipes.size;
+	};
+
+	auto calculate_new_recipe = [&recipes](int32_t elf_1, int32_t elf_2)
+	{
+		char new_recipe[16] = { 0 }, 
+			*c = new_recipe;
+
+		sprintf_s(new_recipe, 16, "%d", recipes.buf[elf_1] + recipes.buf[elf_2]);
+		while (*c != 0)
+		{
+			recipes.push_back((*c++) - '0');
+		}
+	};
+
+	auto tick = [&]()
+	{
+		// Calculate the new recipe(s)
+		calculate_new_recipe(elf_1_index, elf_2_index);
+
+		// Choose new current recipes
+		elf_1_index = choose_active_recipe(elf_1_index);
+		elf_2_index = choose_active_recipe(elf_2_index);
+	};
+
+	recipes.push_back(FIRST_VAL);
+	recipes.push_back(SECOND_VAL);
+
+	/* Part 1
+	while (recipes.size < PUZZLE_INPUT + 11)
+	{
+		tick();
+	}
+
+	int32_t *start_addr = recipes.buf + PUZZLE_INPUT;
+	for (int32_t i = 0; i < 10; ++i)
+		printf("%d", *(start_addr++));
+	printf("\n");
+
+	/*///Part 2
+
+	//int32_t* haystack = nullptr;
+	//int32_t const* needle = PUZZLE_INPUT_ARR;
+	int32_t haystack_index = -1, needle_index = 0;
+	bool found_string = false;
+
+	int32_t old_size = 0;
+
+	while (!found_string)
+	{
+		tick();
+		int32_t new_size = recipes.size;
+
+		for (int32_t i = old_size; i < new_size; ++i)
+		{
+			if (haystack_index >= 0)
+			{
+				++haystack_index; ++needle_index;
+				if (PUZZLE_INPUT_ARR[needle_index] == recipes.buf[haystack_index])
+				{
+					// all is good, we're still matching!!
+					if (needle_index == PUZZLE_INPUT_COUNT - 1)
+					{
+						found_string = true;
+						break;
+					}
+				}
+				else
+				{
+					// if we failed to match partway through, we need to back up i to catch repeated characters
+					i -= needle_index;
+					needle_index = 0;
+					haystack_index = -1;
+				}
+			}
+			else // haystack == -1
+			{
+				if (recipes.buf[i] == PUZZLE_INPUT_ARR[needle_index])
+					haystack_index = i;
+			}
+		}
+
+		old_size = new_size;
+	}
+
+	int32_t index = haystack_index - PUZZLE_INPUT_COUNT + 1;//(haystack - PUZZLE_INPUT_COUNT - recipes.buf);
+	printf("Recipes: %d\n", index);
+
+	//*/
+
+	recipes.destruct();
 }
