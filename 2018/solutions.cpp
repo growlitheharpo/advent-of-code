@@ -1454,23 +1454,16 @@ void day14()
 		}
 	};
 
-	auto tick = [&]()
-	{
-		// Calculate the new recipe(s)
-		calculate_new_recipe(elf_1_index, elf_2_index);
-
-		// Choose new current recipes
-		elf_1_index = choose_active_recipe(elf_1_index);
-		elf_2_index = choose_active_recipe(elf_2_index);
-	};
-
 	recipes.push_back(FIRST_VAL);
 	recipes.push_back(SECOND_VAL);
 
 	/* Part 1
 	while (recipes.size < PUZZLE_INPUT + 11)
 	{
-		tick();
+		calculate_new_recipe(elf_1_index, elf_2_index);
+
+		elf_1_index = choose_active_recipe(elf_1_index);
+		elf_2_index = choose_active_recipe(elf_2_index);
 	}
 
 	int32_t *start_addr = recipes.buf + PUZZLE_INPUT;
@@ -1485,7 +1478,7 @@ void day14()
 
 	while (needle != PUZZLE_INPUT_END)
 	{
-		tick();
+		calculate_new_recipe(elf_1_index, elf_2_index);
 
 		for (; i < recipes.size; ++i)
 		{
@@ -1505,6 +1498,9 @@ void day14()
 				needle = PUZZLE_INPUT_ARR;
 			}
 		}
+
+		elf_1_index = choose_active_recipe(elf_1_index);
+		elf_2_index = choose_active_recipe(elf_2_index);
 	}
 
 	int32_t index = i - PUZZLE_INPUT_COUNT + 1;
@@ -1513,4 +1509,9 @@ void day14()
 	//*/
 
 	recipes.destruct();
+}
+
+void day15()
+{
+
 }

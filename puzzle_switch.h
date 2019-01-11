@@ -1,6 +1,6 @@
 #pragma once
 
-#define CURRENT_DAY day14
+#define CURRENT_DAY day15
 
 void day01();
 void day02();
