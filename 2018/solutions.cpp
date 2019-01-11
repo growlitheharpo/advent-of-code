@@ -1186,9 +1186,9 @@ void day13()
 
 	struct cart
 	{
-		uint32_t x = INT_MAX, y = INT_MAX;
-		char dir;
-		enum D { LEFT, STRAIGHT, RIGHT } turn_dir = LEFT;
+		uint32_t y = INT_MAX, x = INT_MAX;
+		uint32_t dir;
+		enum D : uint32_t { LEFT, STRAIGHT, RIGHT } turn_dir = LEFT;
 
 		void intersection_turn()
 		{
@@ -1252,7 +1252,6 @@ void day13()
 		else return 1;
 	};
 
-
 	if (fin == NULL)
 		return;
 
@@ -1289,21 +1288,25 @@ void day13()
 	}
 	fclose(fin);
 
-	struct { int32_t tick = 0, x, y; } result;
+	struct { int32_t tick = 0, x, y, crash_count = 0; } result;
 	bool collision_occurred = false;
 
 	HANDLE HStdHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-	DWORD tmp, con_size;
+	DWORD tmp;
 	COORD write_coord;
-	CONSOLE_SCREEN_BUFFER_INFO csbi;
-
-	GetConsoleScreenBufferInfo(HStdHandle, &csbi);
-	con_size = csbi.dwSize.X * csbi.dwSize.Y;
 
 	while (!collision_occurred)
 	{
 		++result.tick;
 		qsort(carts, CART_COUNT, sizeof(cart), sort_carts);
+
+		//* Part 2
+		if (cart_num == 1)
+		{
+			result.x = carts[0].x;
+			result.y = carts[0].y;
+			break;
+		} /**/
 
 		// Update all of the carts
 		for (int32_t i = 0; i < cart_num && !collision_occurred; ++i)
@@ -1331,9 +1334,13 @@ void day13()
 			case '/': c.forwardslash_turn(); break;
 			}
 
-			// Check all previous carts (which have already updated) to see if there's a collision
-			for (int32_t j = 0; j < i; ++j)
+			// Check all carts to see if there's a collision
+			for (int32_t j = 0; j < cart_num; ++j)
 			{
+				if (i == j)
+					continue;
+
+				/* Part 1
 				if (carts[j].x == c.x && carts[j].y == c.y)
 				{
 					result.x = c.x;
@@ -1341,12 +1348,22 @@ void day13()
 					collision_occurred = true;
 					break;
 				}
+
+				/*/// Part 2
+				if (carts[j].x == c.x && carts[j].y == c.y)
+				{
+					carts[j].x = carts[j].y = INT_MAX;
+					c.x = c.y = INT_MAX;
+					result.crash_count++;
+					break;
+				}
+
+				//*/
 			}
 		}
 
-		// Clear the console
-		//write_coord = { 0, 0 };
-		//FillConsoleOutputCharacter(HStdHandle, ' ', con_size, write_coord, &tmp);
+		cart_num -= result.crash_count * 2;
+		result.crash_count = 0;
 
 		/* Draw the track
 		for (int32_t y = 0; y < Y_HEIGHT; ++y)
@@ -1382,4 +1399,5 @@ void day13()
 	}
 
 	printf("Collision occurred at second %d @ %d,%d\n", result.tick, result.x, result.y);
+	CloseHandle(HStdHandle);
 }
