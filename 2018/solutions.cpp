@@ -1407,6 +1407,7 @@ void day14()
 	const int32_t PUZZLE_INPUT = 909441;
 	const int32_t PUZZLE_INPUT_ARR[] = { 9,0,9,4,4,1 };
 	const int32_t PUZZLE_INPUT_COUNT = sizeof(PUZZLE_INPUT_ARR) / sizeof(PUZZLE_INPUT_ARR[0]);
+	const int32_t * const PUZZLE_INPUT_END = PUZZLE_INPUT_ARR + PUZZLE_INPUT_COUNT;
 	const uint32_t FIRST_VAL = 3;
 	const uint32_t SECOND_VAL = 7;
 
@@ -1479,51 +1480,34 @@ void day14()
 
 	/*///Part 2
 
-	//int32_t* haystack = nullptr;
-	//int32_t const* needle = PUZZLE_INPUT_ARR;
-	int32_t haystack_index = -1, needle_index = 0;
-	bool found_string = false;
+	int32_t const* needle = PUZZLE_INPUT_ARR;
+	int32_t i = 0;
 
-	int32_t old_size = 0;
-
-	while (!found_string)
+	while (needle != PUZZLE_INPUT_END)
 	{
 		tick();
-		int32_t new_size = recipes.size;
 
-		for (int32_t i = old_size; i < new_size; ++i)
+		for (; i < recipes.size; ++i)
 		{
-			if (haystack_index >= 0)
+			if (recipes.buf[i] == *needle)
 			{
-				++haystack_index; ++needle_index;
-				if (PUZZLE_INPUT_ARR[needle_index] == recipes.buf[haystack_index])
-				{
-					// all is good, we're still matching!!
-					if (needle_index == PUZZLE_INPUT_COUNT - 1)
-					{
-						found_string = true;
-						break;
-					}
-				}
-				else
-				{
-					// if we failed to match partway through, we need to back up i to catch repeated characters
-					i -= needle_index;
-					needle_index = 0;
-					haystack_index = -1;
-				}
+				// all is good, we're matching!
+				++needle;
+
+				// If we're at the end, stop checking
+				if (needle == PUZZLE_INPUT_END)
+					break;
 			}
-			else // haystack == -1
+			else
 			{
-				if (recipes.buf[i] == PUZZLE_INPUT_ARR[needle_index])
-					haystack_index = i;
+				// if we failed to match partway through, we need to back up i to catch repeated characters
+				i -= (PUZZLE_INPUT_ARR - needle);
+				needle = PUZZLE_INPUT_ARR;
 			}
 		}
-
-		old_size = new_size;
 	}
 
-	int32_t index = haystack_index - PUZZLE_INPUT_COUNT + 1;//(haystack - PUZZLE_INPUT_COUNT - recipes.buf);
+	int32_t index = i - PUZZLE_INPUT_COUNT + 1;
 	printf("Recipes: %d\n", index);
 
 	//*/
