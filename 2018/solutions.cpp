@@ -1309,7 +1309,7 @@ void day13()
 		} /**/
 
 		// Update all of the carts
-		for (int32_t i = 0; i < cart_num && !collision_occurred; ++i)
+		for (uint32_t i = 0; i < cart_num && !collision_occurred; ++i)
 		{
 			cart& c = carts[i];
 
@@ -1335,7 +1335,7 @@ void day13()
 			}
 
 			// Check all carts to see if there's a collision
-			for (int32_t j = 0; j < cart_num; ++j)
+			for (uint32_t j = 0; j < cart_num; ++j)
 			{
 				if (i == j)
 					continue;
@@ -1373,7 +1373,7 @@ void day13()
 				char output = track[y][x];
 				WORD color = 15;
 
-				for (int32_t i = 0; i < cart_num; ++i) 
+				for (uint32_t i = 0; i < cart_num; ++i) 
 				{
 					if (carts[i].y == y && carts[i].x == x) 
 					{ 
@@ -1413,10 +1413,15 @@ void day14()
 
 	struct vec
 	{
-		const int32_t DEFAULT_CAPACITY = 32;
+		const int32_t DEFAULT_CAPACITY = 64;
 
 		int32_t *buf = (int32_t*)malloc(sizeof(int32_t) * DEFAULT_CAPACITY);
 		int32_t size = 0, capacity = DEFAULT_CAPACITY;
+
+		~vec()
+		{
+			destruct();
+		}
 
 		void push_back(int32_t v)
 		{
@@ -1507,11 +1512,148 @@ void day14()
 	printf("Recipes: %d\n", index);
 
 	//*/
-
-	recipes.destruct();
 }
 
 void day15()
 {
+	FILE* fin;
+	fopen_s(&fin, "input_day13.txt", "r");
 
+	if (fin == nullptr)
+		return;
+
+
+
+	fclose(fin);
+}
+
+void day16()
+{
+	// Simulating a 32-bit register size
+	typedef uint32_t size_r;
+	typedef size_r(*op_func)(size_r[4], size_r, size_r);
+
+	FILE* fin;
+	fopen_s(&fin, "input_day16.txt", "r");
+
+	if (fin == nullptr)
+		return;
+
+	// The 16 op codes. No validation is performed on the inputs
+	auto addr = [](size_r reg[4], size_r a, size_r b) -> size_r { return reg[a] + reg[b]; };
+	auto addi = [](size_r reg[4], size_r a, size_r b) -> size_r { return reg[a] + b; };
+	auto mulr = [](size_r reg[4], size_r a, size_r b) -> size_r { return reg[a] * reg[b]; };
+	auto muli = [](size_r reg[4], size_r a, size_r b) -> size_r { return reg[a] * b; };
+	auto banr = [](size_r reg[4], size_r a, size_r b) -> size_r { return reg[a] & reg[b]; };
+	auto bani = [](size_r reg[4], size_r a, size_r b) -> size_r { return reg[a] & b; };
+	auto borr = [](size_r reg[4], size_r a, size_r b) -> size_r { return reg[a] | reg[b]; };
+	auto bori = [](size_r reg[4], size_r a, size_r b) -> size_r { return reg[a] | b; };
+	auto setr = [](size_r reg[4], size_r a, size_r b) -> size_r { return reg[a]; };
+	auto seti = [](size_r reg[4], size_r a, size_r b) -> size_r { return a; };
+	auto gtir = [](size_r reg[4], size_r a, size_r b) -> size_r { return a > reg[b] ? 1 : 0; };
+	auto gtri = [](size_r reg[4], size_r a, size_r b) -> size_r { return reg[a] > b ? 1 : 0; };
+	auto gtrr = [](size_r reg[4], size_r a, size_r b) -> size_r { return reg[a] > reg[b] ? 1 : 0; };
+	auto eqir = [](size_r reg[4], size_r a, size_r b) -> size_r { return a == reg[b] ? 1 : 0; };
+	auto eqri = [](size_r reg[4], size_r a, size_r b) -> size_r { return reg[a] == b ? 1 : 0; };
+	auto eqrr = [](size_r reg[4], size_r a, size_r b) -> size_r { return reg[a] == reg[b] ? 1 : 0; };
+
+	const size_r OP_COUNT = 16;
+	op_func unordered_ops[OP_COUNT] = { addr, addi, mulr, muli, banr, bani, borr, bori, setr, seti, gtir, gtri, gtrr, eqir, eqri,eqrr };
+	op_func op_table[OP_COUNT] = { 0 };
+
+	/* Part 1
+	uint32_t total = 0;
+	while (true)
+	{
+		size_r reg_in[4] = { 0 }, reg_out[4] = { 0 };
+		size_r op, a, b, c;
+		size_r r = fscanf_s(fin, "Before: [%u, %u, %u, %u] \n%u %u %u %u \nAfter:  [%u, %u, %u, %u] \n",
+			reg_in + 0, reg_in + 1, reg_in + 2, reg_in + 3,
+			&op, &a, &b, &c,
+			reg_out + 0, reg_out + 1, reg_out + 2, reg_out + 3);
+
+		if (r != 12)
+			break;
+
+		// Loop through all the ops and count how many match the behavior we see
+		size_r matches = 0;
+		for (size_r i = 0; i < OP_COUNT; ++i)
+		{
+			size_r result = unordered_ops[i](reg_in, a, b);
+			if (reg_out[c] == result)
+				++matches;
+		}
+
+		// We want to count all samples that matched at least 3 ops
+		if (matches >= 3)
+			++total;
+	}
+
+	printf("Total samples with >= 3 matches: %d\n", total);
+
+	/*/// PART 2
+
+	size_r found_count = 0;
+	while (true)
+	{
+		size_r reg_in[4] = { 0 }, reg_out[4] = { 0 };
+		size_r op, a, b, c;
+		size_r r = fscanf_s(fin, "Before: [%u, %u, %u, %u] \n%u %u %u %u \nAfter:  [%u, %u, %u, %u] \n",
+			reg_in + 0, reg_in + 1, reg_in + 2, reg_in + 3,
+			&op, &a, &b, &c,
+			reg_out + 0, reg_out + 1, reg_out + 2, reg_out + 3);
+
+		// If we failed to read 12 items, we're at the end of our sample.
+		// Check to see if we've found every op code. If yes, jump out.
+		// If no, back up and start again (with the "found" ops removed from consideration)
+		if (r != 12)
+		{
+			if (found_count < OP_COUNT)
+				fseek(fin, 0, SEEK_SET);
+			else
+				break;
+		}
+
+		// Loop through all the ops and see if any of them match the behavior we see
+		size_r matches = 0, match_index = 0;
+		for (size_r i = 0; i < OP_COUNT; ++i)
+		{
+			if (unordered_ops[i] == nullptr)
+				continue;
+
+			size_r result = unordered_ops[i](reg_in, a, b);
+			if (reg_out[c] == result)
+			{
+				++matches;
+				match_index = i;
+			}
+		}
+
+		// If exactly one of them matched, we know it must be the correct op for this opcode.
+		// Remove it from consideration, and store it at the correct opcode index in the second array.
+		if (matches == 1)
+		{
+			op_table[op] = unordered_ops[match_index];
+			unordered_ops[match_index] = nullptr;
+			++found_count;
+		}
+	}
+
+	// By now, we should have a totally filled out op table. Execute the sample program.
+	// FIN should already be at the correct seek state to start reading.
+	size_r registers[4] = { 0 };
+	while (!feof(fin))
+	{
+		size_r op, a, b, c;
+		fscanf_s(fin, "%u %u %u %u\n", &op, &a, &b, &c);
+
+		// run the program
+		registers[c] = op_table[op](registers, a, b);
+	}
+
+	printf("Result in register 0: %u\n", registers[0]);
+
+	//*/
+
+	fclose(fin);
 }
