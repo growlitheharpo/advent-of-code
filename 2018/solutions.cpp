@@ -1657,3 +1657,8 @@ void day16()
 
 	fclose(fin);
 }
+
+void day17()
+{
+
+}
