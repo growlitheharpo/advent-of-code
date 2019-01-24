@@ -1660,5 +1660,72 @@ void day16()
 
 void day17()
 {
+	FILE* fin;
+	fopen_s(&fin, "input_day17.txt", "r");
 
+	const uint32_t INPUT_COUNT = 1713;
+
+	if (fin == NULL)
+		return;
+
+	// Data structure to hold the input data
+	struct wall {
+		struct { int32_t x, y; } top_left, bottom_right;
+	} input[INPUT_COUNT];
+
+	// Throwaway structure to track min and max of the coordinates
+	struct {
+		int32_t x, y;
+	} minimum = { INT_MAX, INT_MAX }, maximum = { INT_MIN, INT_MIN };
+
+	// Grab all of the input walls
+	for (wall* w = input; (w - input) < INPUT_COUNT; ++w)
+	{
+		char line_buffer[128];
+		fgets(line_buffer, 128, fin);
+
+		if (line_buffer[0] == 'x')
+		{
+			sscanf_s(line_buffer, "x = %d, y = %d..%d\n", &w->top_left.x, &w->top_left.y, &w->bottom_right.y);
+			w->bottom_right.x = w->top_left.x + 1;
+		}
+		else
+		{
+			sscanf_s(line_buffer, "y = %d, x = %d..%d", &w->top_left.y, &w->top_left.x, &w->bottom_right.x);
+			w->bottom_right.y = w->top_left.y + 1;
+		}
+
+		minimum.x = min(minimum.x, w->top_left.x);
+		minimum.y = min(minimum.y, w->top_left.y);
+		maximum.x = max(maximum.x, w->bottom_right.x);
+		maximum.y = max(maximum.y, w->bottom_right.y);
+	}
+
+	fclose(fin);
+
+	//don't bother with using the minimum for now
+	int32_t array_size = (maximum.x + 1) * (maximum.y + 1) * sizeof(char);
+	char* world_map = (char*)malloc(array_size);
+	memset(world_map, '.', array_size);
+
+	auto address = [&maximum](int32_t x, int32_t y) -> int32_t
+	{
+		// Inner loop should be x to maximize cache usage
+		return (maximum.x + 1) * y + x;
+	};
+
+	// Write the walls in the map
+	for (wall* w = input; (w - input) < INPUT_COUNT; ++w)
+	{
+		for (int32_t y = w->top_left.y; y < w->bottom_right.y; ++y)
+		{
+			for (int32_t x = w->top_left.x; x < w->bottom_right.x; ++x)
+			{
+				world_map[address(x, y)] = '#';
+			}
+		}
+	}
+	world_map[address(500, 0)] = '|';
+
+	free(world_map);
 }
